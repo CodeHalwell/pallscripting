@@ -1,0 +1,7 @@
+.env
+pall
+.streamlit
+files_for_training/
+script_editor/
+test_dillme_prompt.txt
+vector_results.txt

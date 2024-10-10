@@ -1,0 +1,3 @@
+Add 4 mL Ethanol from  solvent station 1 to the sample vial Tray 1, vortex for 5 minutes at 2000 rpm. vortex for 5 minutes at 4000 rpm.
+Add 0.4 mL of DCM from solvent station 2 to this vial. Vortex this vial for 8 minutes at 2000 rpm. Centrifuge for 8 minutes at 4000 rpm.
+Take 150 ul of the DCM from the bottom of the vial and transfer to a GC vial  in tray 6
