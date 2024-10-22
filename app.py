@@ -3,19 +3,10 @@ import os
 import streamlit as st
 from openai import OpenAI
 from pinecone import Pinecone
-from langchain_openai import ChatOpenAI
-from langchain.chains import LLMChain
-from langchain.memory import ConversationBufferMemory
-from langchain.prompts import (
-    ChatPromptTemplate,
-    HumanMessagePromptTemplate,
-    MessagesPlaceholder,
-)
-from langchain.schema import SystemMessage
 import ast
 import tiktoken
 import dotenv
-from tornado.web import authenticated
+
 
 dotenv.load_dotenv()
 
@@ -37,13 +28,8 @@ pc = Pinecone(api_key=pinecone_api_key, environment=pinecone_environment)
 
 index = pc.Index(pinecone_index_name)
 
+TEMPERATURE=0.0
 
-llm = ChatOpenAI(model_name="gpt-4o-2024-08-06",
-                  openai_api_key=gpt_api_key,
-                  temperature="0.0",
-                  max_tokens=4000)
-
-memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
 
 glossary = {
     "MoveToObject": "This activity moves the robot arm to the desired target position and detects the target using the touchdown mechanism. Automatically takes care of the approach path to the target (e.g. opening the agitator lid or pulling out stack drawers). Must always be used in pair with LeaveObject",
@@ -96,164 +82,165 @@ glossary = {
 }
 
 methods = """
-ApplyPressure( target, penetrationDepth /*, pressurizeTime, penetrationSpeed, leaveObject */ )
-AirgapTip( volume /*, flowRate */ )
-ApproachObject( target /*, index, openCoverPlate, motionFactor, motionOption, offsetX, offsetY, offsetZ */ )
-AspirateDilutor( dilutor, volume /*, flowRate, overfillRate, pullupDelay */ )
-AspirateSyringe( volume /*, flowRate, overfillRate, pullupDelay */ )
-AspirateTip( volume /*, flowRate, pullupDelay, trackLiquidLevel */ )
-AspirateTipWithLiquidClass( target, volume /*, index, useLLD */ )
-Beep( duration /*, frequency */ )
-CalibrateDeCapper( target )
-CalibrateRobotArmCurrent( /* usage */ )
-CapObject( target, capper /*, capperIndex, dispose */ )
-ChangeTool( /* tool */ )
-CleanInjector( target, washSource /*, washVolume, needleGap, dispenseFlowRate, dispensePullupDelay, washPenetrationDepth, aspirateFlowRate, aspiratePullupDelay, washIndex, leaveObjectAfterClean */ )
-CleanSyringe( washSource /*, washIndex, washPenetrationDepth, aspirateFlowRate, pullupDelay, wasteTarget, wasteIndex, wastePenetrationDepth, dispenseFlowRate, washVolume, washAirGapVolume, cycles */ )
-CloseOpenDrawers( stack )
-DecapObject( target, decapper /*, decapperIndex */ )
-DeCapperDispose( target )
-DeliverLiquidDilutor( dilutor, volume /*, aspirateFlowRate, aspiratePullupDelay, dispenseFlowRate, solventPort, deliveryPort */ )
-Depenetrate( /* wipeOff, depthReduction */ )
-DetectObject( target /*, index, coverPlateIsOpen, searchDistance, detectionCurrent */ )
-DetectObjectContainer( target /*, index, searchDistance, detectionCurrent, evaluateContainerCollision */ )
-DispenseDilutor( dilutor, volume /*, flowRate */ )
-DispenseSyringe( volume /*, flowRate */ )
-DispenseTip( volume /*, flowRate, dispenseDelay, trackLiquidLevel */ )
-DispenseTipWithLiquidClass( target, volume /*, index, useLLD */ )
-DisposeTip( /* stripForce */ )
-DisposeVial( source /*, needleTransportPenetrationDepth */ )
-EmptyDilutor( dilutor /*, flowRate */ )
-EmptySyringe( /* flowRate */ )
-EmptyTip( /* flowRate, dispenseDelay, moveToWaste */ )
-FastInjectSampleGC( injector /*, injectedSignal, waitTime, timerTolerance, waitTimer, timer, penetrationDepth, volume, accelerationDistance, penetrateOverlapDistance, depenetrateOverlapDistance, plungerRetractDelay, depenetrationDelay */ )
-FillingStrokes( /* volume, aspirateFlowRate, dispenseFlowRate, pullupDelay, dispenseDelay, count */ )
-GenericGripperGetAdapterDistance( )
-GenericGripperGrabObject( /* grabDistance, grabSpeed, retractDistanceBefore, retractDistanceAfter, absAdapterDistance, gripForce, gripDirection */ )
-GenericGripperGrip( /* gripForce, gripDirection */ )
-GenericGripperMoveAdapterAbsolute( absDistance )
-GenericGripperMoveAdapterRelative( relDistance )
-GenericGripperRelease( /* relReleaseDistance, releaseDirection */ )
-GenericGripperReleaseObject( /* retractDistanceBefore, retractDistanceAfter, relReleaseDistance, releaseDirection */ )
-GetActualVolume( target, index )
-GetAnalogSignalADCValue( signal )
-GetAnalogSignalValue( signal )
-GetArmPosition( /* part */ )
-GetAxisPosition( axis )
-GetCentrifugeRotorTemperature( target )
-GetObjectPosition( target /*, index, childTarget */ )
-GetSampleAndCleanInjector( sampleTarget, aspirateVolume, injectorTarget /*, sampleIndex, useTouchDown, leaveSample, penetrationDepth, penetrationSpeed, useBottomSense, heightFromBottom, aspirateRearAirGapVolume, aspirateFrontAirGapVolume, aspirateFlowRate, aspirateOverfillRate, aspiratePullupDelay, washPump1, washPumpIndex1, washTime1, washPump2, washPumpIndex2, washTime2 */ )
-GetSignalState( signal )
-GetStepperPosition( target )
-GrabObject( )
-GripperGrip( )
-GripperRelease( )
-GripperReset( )
-HomeStepper( target /*, direction, velocity */ )
-InjectSampleGC( injector /*, injectedSignal, penetrationDepth, penetrationSpeed, volume, flowRate, preDelay, postDelay, waitTime, timerTolerance, timer, waitTimer, injectedSignalMode */ )
-InjectSampleLC( target /*, injectedSignal1, injectedSignal2, volume, flowRate, preDelay, postDelay, timer, waitTimer, waitTime, timerTolerance */ )
-IsStepperMoving( target )
-LeaveDeCapper( target )
-LeaveObject( /* stripDistance, leaveDrawerOpen, wipeOff */ )
-LowerNeedleGuide( )
-MoveAbsolute( /* destinationX, destinationY, destinationZ, part, accelerationFactor, drfOption, forceDirectMovement */ )
-MoveInjectorValve( target, position /*, injectedSignal1, injectedSignal2 */ )
-MoveNeedleGuide( movement /*, accelerationFactor, isRelativeMovement */ )
-MovePlunger( movement /*, speed, isRelativeMovement */ )
-MoveRelative( /* referencePoint, movementX, movementY, movementZ, accelerationFactor, drfOption, forceDirectMovement */ )
-MoveSelectorValve( target, destinationPort )
-MoveStepperAbsolute( target, position /*, velocity, acceleration, waitForTerm */ )
-MoveStepperRelative( target, position /*, velocity, acceleration, waitForTerm */ )
-MoveStepperVelocity( target, velocity /*, direction, acceleration */ )
-MoveToHome( )
-MoveToObject( target /*, index, cutFoil, openCoverPlate, useTouchDown */ )
-MoveToPosition( referencePoint /*, movementX, movementY, movementZ, searchDistance, accelerationFactor, useTouchDown, forceDirectMovement */ )
-MoveTorqueMode( axis, distance /*, torqueCurrent, speed, timeout, method, steadyImpactThreshold, steadyImpactDuration, relative, posDirMoveCurrent, negDirMoveCurrent */ )
-MoveTwoPositionNPortValve( target, position /*, injectedSignal1, injectedSignal2 */ )
-MoveValveDrive( target, position /*, velocity */ )
-MultiStageInjectSampleGc( injector /*, injectedSignal, phase1Volume, phase1FlowRate, phase1PenetrationDepth, phase1PenetrationSpeed, phase2FlowRate, phase3Volume, phase3FlowRate, phase3PenetrationDepth, preDelay, postDelay, waitTime, timerTolerance, timer, waitTimer, injectedSignalMode */ )
-ObstacleAvoidanceTest( destination )
-OperateCentrifugeCover( target, position )
-OperateDeCapperBracket( target, operation )
-ParkDeCapper( target )
-ParkTool( /* slot, safe, shutdown, releaseNdlGuideAdapter */ )
-ParkToolAdapter( )
-PauseAgitator( agitator )
-PauseRotator( target )
-PauseStirrer( stirrer )
-PenetrateObject( target /*, index, depth, speed */ )
-PenetrateWithBottomSense( target /*, index, heightFromBottom, speed, searchDistance, detectionCurrent */ )
-PenetrateWithConstForce( target /*, index */ )
-PickNeedleGuideAdapter( adapterStation /*, checkAdapterMounted */ )
-PickTool( slot )
-PickToolAdapter( toolAdapter )
-PickUpTip( target /*, index, validate, pickUpForce, validationForce */ )
-PlayMelody( melodyName /*, beatFactor, playbackMode */ )
-PreFillSyringe( volume )
-PrimeDilutor( dilutor /*, wastePosition, solventPort, volume, flowRate */ )
-PulsedSpmeConditioning( conditioningTime, target /*, pulseDuration, pauseDuration, penetrationSpeed, fiberPenetrationDepth */ )
-PurgeVial( target /*, purgeTime, penetrationDepth */ )
-PushObject( target /*, index, force, searchDistance */ )
-ReadBarcode( target /*, index, home, expectedBarcode, motionFactor, motionOption, verticalClearance */ )
-ReleaseNeedleGuideAdapter( adapterStation /*, checkAdapterMounted */ )
-ReleaseObject( )
-ReleasePressure( target /*, releaseTime */ )
-Reset( )
-ResetAfterSample( )
-ResetLiquidClass( )
-ResumeAgitator( agitator )
-ResumeRotator( target )
-ResumeStirrer( stirrer )
-RetractNeedleGuide( /* distance */ )
-ReturnTip( /* dropForce, stripForce, emptyTipInWaste */ )
-RinseWashLiner( target /*, cycles */ )
-SampleRelativeTorqueModeMoveCurrent( axis, velocity )
-ScrewCap( target /*, heightCheck, heightCheckMaxDeviation */ )
-SetActualVolume( target, index, volume )
-SetAgitator( agitator /*, speed, state, onTime, offTime, timer */ )
-SetAttachmentState( target /*, state, mode, offset */ )
-SetCentrifuge( target /*, speed, gForce, state, waitForConstSpeed */ )
-SetContactState( target /*, state, offset */ )
-SetLcToolPosition( target, washSource, lcPosition )
-SetParameter( target, name /*, valueInt, valueString */ )
-SetPump( target /*, pumpIndex, flowRate, flowFactor, state */ )
-SetRotator( target /*, speed, state, onTime, offTime, waitForConstSpeed */ )
-SetScheduledSignal( signal, time )
-SetSignal( signal /*, mode */ )
-SetStandbyTemperature( target /*, standbyTemperature, commitImmediately */ )
-SetStepperPosition( target, position )
-SetStirrer( stirrer /*, speed, state, onTime, offTime */ )
-SetTemperature( target, temperature /*, tolerance, monitorTemperature, wait */ )
-SetToolState( attachable /*, attachmentState */ )
-SetValveDriveSchedule( /* target1, position1, velocity1, target2, position2, velocity2, signal1, signal2, waitTime */ )
-SetVolatilePosition( target, type, position /*, positionIndex */ )
-SetVortexMixer( vortexMixer /*, speed, state */ )
-StartBubbleDetector( target )
-StartPurgeSyringe( /* timer */ )
-StartSpmeAdsorb( target /*, index, penetrationSpeed, fiberPenetrationDepth, doAgitation */ )
-StartSpmeDesorb( target /*, penetrationSpeed, fiberPenetrationDepth */ )
-StartSpmeInject( target /*, penetrationSpeed, fiberPenetrationDepth, injectedSignal, injectedSignalMode */ )
-StartTimer( timer )
-StopBubbleDetector( target, numberOfExcpectedLevelChanges /*, bubbleFilter, compareOption */ )
-StopConstForce( )
-StopPurgeSyringe( /* volume */ )
-StopSpmeAdsorb( )
-StopSpmeDesorb( )
-StopSpmeInject( )
-StopStepper( target /*, waitForTerm */ )
-SwitchCentrifugePosition( target, index )
-SwitchDilutorValve( dilutor, valvePosition )
-SwitchGasValve( target, position )
-SwitchOffHeater( target )
-TransportVial( source, destination /*, destinationIndex, home, leaveObject, leaveDrawerOpen, needleTransportPenetrationDepth, motionFactor, motionOption */ )
-TransportVialHome( vial /*, leaveObject, leaveDrawerOpen, motionFactor, motionOption */ )
-UnscrewCap( target /*, retighten, slipCheck */ )
-UseLiquidClass( liquidClass /*, multiDispense */ )
-ValidateTemperatureControl( target )
-VortexVial( source, vortexMixer /*, vortexMixerSpeed, time, leaveDrawerOpen */ )
-Wait( time )
-WaitForSyncSignal( signal )
-WaitForTimer( timer, time /*, tolerance */ )"""
+    ApplyPressure( target, penetrationDepth /*, pressurizeTime, penetrationSpeed, leaveObject */ )
+    AirgapTip( volume /*, flowRate */ )
+    ApproachObject( target /*, index, openCoverPlate, motionFactor, motionOption, offsetX, offsetY, offsetZ */ )
+    AspirateDilutor( dilutor, volume /*, flowRate, overfillRate, pullupDelay */ )
+    AspirateSyringe( volume /*, flowRate, overfillRate, pullupDelay */ )
+    AspirateTip( volume /*, flowRate, pullupDelay, trackLiquidLevel */ )
+    AspirateTipWithLiquidClass( target, volume /*, index, useLLD */ )
+    Beep( duration /*, frequency */ )
+    CalibrateDeCapper( target )
+    CalibrateRobotArmCurrent( /* usage */ )
+    CapObject( target, capper /*, capperIndex, dispose */ )
+    ChangeTool( /* tool */ )
+    CleanInjector( target, washSource /*, washVolume, needleGap, dispenseFlowRate, dispensePullupDelay, washPenetrationDepth, aspirateFlowRate, aspiratePullupDelay, washIndex, leaveObjectAfterClean */ )
+    CleanSyringe( washSource /*, washIndex, washPenetrationDepth, aspirateFlowRate, pullupDelay, wasteTarget, wasteIndex, wastePenetrationDepth, dispenseFlowRate, washVolume, washAirGapVolume, cycles */ )
+    CloseOpenDrawers( stack )
+    DecapObject( target, decapper /*, decapperIndex */ )
+    DeCapperDispose( target )
+    DeliverLiquidDilutor( dilutor, volume /*, aspirateFlowRate, aspiratePullupDelay, dispenseFlowRate, solventPort, deliveryPort */ )
+    Depenetrate( /* wipeOff, depthReduction */ )
+    DetectObject( target /*, index, coverPlateIsOpen, searchDistance, detectionCurrent */ )
+    DetectObjectContainer( target /*, index, searchDistance, detectionCurrent, evaluateContainerCollision */ )
+    DispenseDilutor( dilutor, volume /*, flowRate */ )
+    DispenseSyringe( volume /*, flowRate */ )
+    DispenseTip( volume /*, flowRate, dispenseDelay, trackLiquidLevel */ )
+    DispenseTipWithLiquidClass( target, volume /*, index, useLLD */ )
+    DisposeTip( /* stripForce */ )
+    DisposeVial( source /*, needleTransportPenetrationDepth */ )
+    EmptyDilutor( dilutor /*, flowRate */ )
+    EmptySyringe( /* flowRate */ )
+    EmptyTip( /* flowRate, dispenseDelay, moveToWaste */ )
+    FastInjectSampleGC( injector /*, injectedSignal, waitTime, timerTolerance, waitTimer, timer, penetrationDepth, volume, accelerationDistance, penetrateOverlapDistance, depenetrateOverlapDistance, plungerRetractDelay, depenetrationDelay */ )
+    FillingStrokes( /* volume, aspirateFlowRate, dispenseFlowRate, pullupDelay, dispenseDelay, count */ )
+    GenericGripperGetAdapterDistance( )
+    GenericGripperGrabObject( /* grabDistance, grabSpeed, retractDistanceBefore, retractDistanceAfter, absAdapterDistance, gripForce, gripDirection */ )
+    GenericGripperGrip( /* gripForce, gripDirection */ )
+    GenericGripperMoveAdapterAbsolute( absDistance )
+    GenericGripperMoveAdapterRelative( relDistance )
+    GenericGripperRelease( /* relReleaseDistance, releaseDirection */ )
+    GenericGripperReleaseObject( /* retractDistanceBefore, retractDistanceAfter, relReleaseDistance, releaseDirection */ )
+    GetActualVolume( target, index )
+    GetAnalogSignalADCValue( signal )
+    GetAnalogSignalValue( signal )
+    GetArmPosition( /* part */ )
+    GetAxisPosition( axis )
+    GetCentrifugeRotorTemperature( target )
+    GetObjectPosition( target /*, index, childTarget */ )
+    GetSampleAndCleanInjector( sampleTarget, aspirateVolume, injectorTarget /*, sampleIndex, useTouchDown, leaveSample, penetrationDepth, penetrationSpeed, useBottomSense, heightFromBottom, aspirateRearAirGapVolume, aspirateFrontAirGapVolume, aspirateFlowRate, aspirateOverfillRate, aspiratePullupDelay, washPump1, washPumpIndex1, washTime1, washPump2, washPumpIndex2, washTime2 */ )
+    GetSignalState( signal )
+    GetStepperPosition( target )
+    GrabObject( )
+    GripperGrip( )
+    GripperRelease( )
+    GripperReset( )
+    HomeStepper( target /*, direction, velocity */ )
+    InjectSampleGC( injector /*, injectedSignal, penetrationDepth, penetrationSpeed, volume, flowRate, preDelay, postDelay, waitTime, timerTolerance, timer, waitTimer, injectedSignalMode */ )
+    InjectSampleLC( target /*, injectedSignal1, injectedSignal2, volume, flowRate, preDelay, postDelay, timer, waitTimer, waitTime, timerTolerance */ )
+    IsStepperMoving( target )
+    LeaveDeCapper( target )
+    LeaveObject( /* stripDistance, leaveDrawerOpen, wipeOff */ )
+    LowerNeedleGuide( )
+    MoveAbsolute( /* destinationX, destinationY, destinationZ, part, accelerationFactor, drfOption, forceDirectMovement */ )
+    MoveInjectorValve( target, position /*, injectedSignal1, injectedSignal2 */ )
+    MoveNeedleGuide( movement /*, accelerationFactor, isRelativeMovement */ )
+    MovePlunger( movement /*, speed, isRelativeMovement */ )
+    MoveRelative( /* referencePoint, movementX, movementY, movementZ, accelerationFactor, drfOption, forceDirectMovement */ )
+    MoveSelectorValve( target, destinationPort )
+    MoveStepperAbsolute( target, position /*, velocity, acceleration, waitForTerm */ )
+    MoveStepperRelative( target, position /*, velocity, acceleration, waitForTerm */ )
+    MoveStepperVelocity( target, velocity /*, direction, acceleration */ )
+    MoveToHome( )
+    MoveToObject( target /*, index, cutFoil, openCoverPlate, useTouchDown */ )
+    MoveToPosition( referencePoint /*, movementX, movementY, movementZ, searchDistance, accelerationFactor, useTouchDown, forceDirectMovement */ )
+    MoveTorqueMode( axis, distance /*, torqueCurrent, speed, timeout, method, steadyImpactThreshold, steadyImpactDuration, relative, posDirMoveCurrent, negDirMoveCurrent */ )
+    MoveTwoPositionNPortValve( target, position /*, injectedSignal1, injectedSignal2 */ )
+    MoveValveDrive( target, position /*, velocity */ )
+    MultiStageInjectSampleGc( injector /*, injectedSignal, phase1Volume, phase1FlowRate, phase1PenetrationDepth, phase1PenetrationSpeed, phase2FlowRate, phase3Volume, phase3FlowRate, phase3PenetrationDepth, preDelay, postDelay, waitTime, timerTolerance, timer, waitTimer, injectedSignalMode */ )
+    ObstacleAvoidanceTest( destination )
+    OperateCentrifugeCover( target, position )
+    OperateDeCapperBracket( target, operation )
+    ParkDeCapper( target )
+    ParkTool( /* slot, safe, shutdown, releaseNdlGuideAdapter */ )
+    ParkToolAdapter( )
+    PauseAgitator( agitator )
+    PauseRotator( target )
+    PauseStirrer( stirrer )
+    PenetrateObject( target /*, index, depth, speed */ )
+    PenetrateWithBottomSense( target /*, index, heightFromBottom, speed, searchDistance, detectionCurrent */ )
+    PenetrateWithConstForce( target /*, index */ )
+    PickNeedleGuideAdapter( adapterStation /*, checkAdapterMounted */ )
+    PickTool( slot )
+    PickToolAdapter( toolAdapter )
+    PickUpTip( target /*, index, validate, pickUpForce, validationForce */ )
+    PlayMelody( melodyName /*, beatFactor, playbackMode */ )
+    PreFillSyringe( volume )
+    PrimeDilutor( dilutor /*, wastePosition, solventPort, volume, flowRate */ )
+    PulsedSpmeConditioning( conditioningTime, target /*, pulseDuration, pauseDuration, penetrationSpeed, fiberPenetrationDepth */ )
+    PurgeVial( target /*, purgeTime, penetrationDepth */ )
+    PushObject( target /*, index, force, searchDistance */ )
+    ReadBarcode( target /*, index, home, expectedBarcode, motionFactor, motionOption, verticalClearance */ )
+    ReleaseNeedleGuideAdapter( adapterStation /*, checkAdapterMounted */ )
+    ReleaseObject( )
+    ReleasePressure( target /*, releaseTime */ )
+    Reset( )
+    ResetAfterSample( )
+    ResetLiquidClass( )
+    ResumeAgitator( agitator )
+    ResumeRotator( target )
+    ResumeStirrer( stirrer )
+    RetractNeedleGuide( /* distance */ )
+    ReturnTip( /* dropForce, stripForce, emptyTipInWaste */ )
+    RinseWashLiner( target /*, cycles */ )
+    SampleRelativeTorqueModeMoveCurrent( axis, velocity )
+    ScrewCap( target /*, heightCheck, heightCheckMaxDeviation */ )
+    SetActualVolume( target, index, volume )
+    SetAgitator( agitator /*, speed, state, onTime, offTime, timer */ )
+    SetAttachmentState( target /*, state, mode, offset */ )
+    SetCentrifuge( target /*, speed, gForce, state, waitForConstSpeed */ )
+    SetContactState( target /*, state, offset */ )
+    SetLcToolPosition( target, washSource, lcPosition )
+    SetParameter( target, name /*, valueInt, valueString */ )
+    SetPump( target /*, pumpIndex, flowRate, flowFactor, state */ )
+    SetRotator( target /*, speed, state, onTime, offTime, waitForConstSpeed */ )
+    SetScheduledSignal( signal, time )
+    SetSignal( signal /*, mode */ )
+    SetStandbyTemperature( target /*, standbyTemperature, commitImmediately */ )
+    SetStepperPosition( target, position )
+    SetStirrer( stirrer /*, speed, state, onTime, offTime */ )
+    SetTemperature( target, temperature /*, tolerance, monitorTemperature, wait */ )
+    SetToolState( attachable /*, attachmentState */ )
+    SetValveDriveSchedule( /* target1, position1, velocity1, target2, position2, velocity2, signal1, signal2, waitTime */ )
+    SetVolatilePosition( target, type, position /*, positionIndex */ )
+    SetVortexMixer( vortexMixer /*, speed, state */ )
+    StartBubbleDetector( target )
+    StartPurgeSyringe( /* timer */ )
+    StartSpmeAdsorb( target /*, index, penetrationSpeed, fiberPenetrationDepth, doAgitation */ )
+    StartSpmeDesorb( target /*, penetrationSpeed, fiberPenetrationDepth */ )
+    StartSpmeInject( target /*, penetrationSpeed, fiberPenetrationDepth, injectedSignal, injectedSignalMode */ )
+    StartTimer( timer )
+    StopBubbleDetector( target, numberOfExcpectedLevelChanges /*, bubbleFilter, compareOption */ )
+    StopConstForce( )
+    StopPurgeSyringe( /* volume */ )
+    StopSpmeAdsorb( )
+    StopSpmeDesorb( )
+    StopSpmeInject( )
+    StopStepper( target /*, waitForTerm */ )
+    SwitchCentrifugePosition( target, index )
+    SwitchDilutorValve( dilutor, valvePosition )
+    SwitchGasValve( target, position )
+    SwitchOffHeater( target )
+    TransportVial( source, destination /*, destinationIndex, home, leaveObject, leaveDrawerOpen, needleTransportPenetrationDepth, motionFactor, motionOption */ )
+    TransportVialHome( vial /*, leaveObject, leaveDrawerOpen, motionFactor, motionOption */ )
+    UnscrewCap( target /*, retighten, slipCheck */ )
+    UseLiquidClass( liquidClass /*, multiDispense */ )
+    ValidateTemperatureControl( target )
+    VortexVial( source, vortexMixer /*, vortexMixerSpeed, time, leaveDrawerOpen */ )
+    Wait( time )
+    WaitForSyncSignal( signal )
+    WaitForTimer( timer, time /*, tolerance */ )
+"""
 
 
 def extract_script_contents(file_path):
@@ -323,165 +310,9 @@ def query_and_respond(query):
 
 def generate_xml(chat_script):
     # ... Logic to convert your chat_script to a valid XML structure ...
-    xml_data = f"""
-<?xml version="1.0" encoding="utf-8"?>
-<Cycle created="2024-04-04T12:55:18.0900682+01:00" lastModified="2024-04-04T12:55:18.2128588+01:00" version="1.0.0" scriptVersion="1.0" entryPoint="PMC_Script_5H4Z_FB08_c5b769d247414c7c83f07afa456847de" name="test" PlainTextHash="4B8HQP" xmlns="http://ctc.ch/pal3/integration/v1/">
-  <ReturnValue />
-  <Metadata>
-    <Parameter name="Overlappable" value="false" />
-    <Parameter name="WaitForCdsBeforeStart" value="true" />
-    <Parameter name="WaitForChromatographBeforeStart" value="true" />
-  </Metadata>
-  <Description><![CDATA[]]></Description>
-  <SampleParameters />
-  <MethodParameters>
-    <ReferenceParameterDescription name="tool_1" typeName="ITool" baseUnit="" mandatory="true" displayUnit="" unitFamily="" description="" hasBounds="false" hasDefault="false" minValue="" maxValue="" defaultValue="">
-      <Enumeration>
-        <Option name="none">
-          <Reference></Reference>
-        </Option>
-        <Option name="ITool">
-          <Reference>pal://localhost/machineObject/capability/ITool</Reference>
-        </Option>
-      </Enumeration>
-    </ReferenceParameterDescription>
-    <ReferenceParameterDescription name="washSource_2" typeName="IWashStation" baseUnit="" mandatory="true" displayUnit="" unitFamily="" description="" hasBounds="false" hasDefault="false" minValue="" maxValue="" defaultValue="">
-      <Enumeration>
-        <Option name="none">
-          <Reference></Reference>
-        </Option>
-        <Option name="IWashStation">
-          <Reference>pal://localhost/machineObject/capability/IWashStation</Reference>
-        </Option>
-      </Enumeration>
-    </ReferenceParameterDescription>
-    <IntParameterDescription name="washIndex_2" typeName="Integer" baseUnit="" mandatory="false" displayUnit="" unitFamily="" description="" hasBounds="true" hasDefault="true" minValue="1" maxValue="2" defaultValue="1" />
-    <IntParameterDescription name="washCycles_2" typeName="Integer" baseUnit="" mandatory="false" displayUnit="" unitFamily="" description="" hasBounds="true" hasDefault="true" minValue="0" maxValue="50" defaultValue="3" />
-    <DoubleParameterDescription name="washVolume_2" typeName="Percentage" baseUnit="" mandatory="false" displayUnit="%" unitFamily="Percentage" description="" hasBounds="true" hasDefault="true" minValue="0" maxValue="1.1" defaultValue="0.7000000000000001" />
-    <DoubleParameterDescription name="fillSpeed_2" typeName="Flow" baseUnit="mL/s" mandatory="false" displayUnit="µL/s" unitFamily="Flow" description="" hasBounds="true" hasDefault="true" minValue="0.0001" maxValue="1" defaultValue="0.2" />
-    <DoubleParameterDescription name="washSourcePenetrationDepth_2" typeName="Length" baseUnit="m" mandatory="false" displayUnit="mm" unitFamily="Length" description="" hasBounds="true" hasDefault="true" minValue="0" maxValue="0.045" defaultValue="0.04" />
-    <DoubleParameterDescription name="dispenseSpeed_2" typeName="Flow" baseUnit="mL/s" mandatory="false" displayUnit="µL/s" unitFamily="Flow" description="" hasBounds="true" hasDefault="true" minValue="0.0001" maxValue="2" defaultValue="0.4" />
-  </MethodParameters>
-  <Script>
-  {chat_script}
-  </Script>
-    <Resources>
-    <ResourceSet culture="">
-      <Text key="test_tool_1">Tool</Text>
-      <Text key="test_tool_1__Description"></Text>
-      <Text key="test_washSource_2">Wash Source</Text>
-      <Text key="test_washSource_2__Description"></Text>
-      <Text key="test_washIndex_2">Wash Index</Text>
-      <Text key="test_washIndex_2__Description"></Text>
-      <Text key="test_washCycles_2">Wash Cycles</Text>
-      <Text key="test_washCycles_2__Description"></Text>
-      <Text key="test_washVolume_2">Wash Volume</Text>
-      <Text key="test_washVolume_2__Description"></Text>
-      <Text key="test_fillSpeed_2">Fill Speed</Text>
-      <Text key="test_fillSpeed_2__Description"></Text>
-      <Text key="test_washSourcePenetrationDepth_2">Wash Source Penetration Depth</Text>
-      <Text key="test_washSourcePenetrationDepth_2__Description"></Text>
-      <Text key="test_dispenseSpeed_2">Dispense Speed</Text>
-      <Text key="test_dispenseSpeed_2__Description"></Text>
-    </ResourceSet>
-  </Resources>
-  <MethodParameterGroups xmlns="http://ctc.ch/pal3/datacontract/v1/">
-    <List Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroup">
-      <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroup">
-        <String Member="GroupName">Step 1 - Use Tool</String>
-        <String Member="Description"></String>
-        <Int32 Member="Index">1</Int32>
-        <Boolean Member="IsExpanded">True</Boolean>
-        <List Member="GroupItems" Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">tool_1</String>
-            <Int32 Member="PropertyIndex">1</Int32>
-            <Boolean Member="IsReadOnly">False</Boolean>
-          </Contract>
-        </List>
-      </Contract>
-      <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroup">
-        <String Member="GroupName">Step 2 - Clean Syringe</String>
-        <String Member="Description"></String>
-        <Int32 Member="Index">2</Int32>
-        <Boolean Member="IsExpanded">True</Boolean>
-        <List Member="GroupItems" Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">washSource_2</String>
-            <Int32 Member="PropertyIndex">2</Int32>
-            <Boolean Member="IsReadOnly">False</Boolean>
-          </Contract>
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">washIndex_2</String>
-            <Int32 Member="PropertyIndex">4</Int32>
-            <Boolean Member="IsReadOnly">True</Boolean>
-          </Contract>
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">washCycles_2</String>
-            <Int32 Member="PropertyIndex">6</Int32>
-            <Boolean Member="IsReadOnly">True</Boolean>
-          </Contract>
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">washVolume_2</String>
-            <Int32 Member="PropertyIndex">7</Int32>
-            <Boolean Member="IsReadOnly">True</Boolean>
-          </Contract>
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">fillSpeed_2</String>
-            <Int32 Member="PropertyIndex">6</Int32>
-            <Boolean Member="IsReadOnly">True</Boolean>
-          </Contract>
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">washSourcePenetrationDepth_2</String>
-            <Int32 Member="PropertyIndex">8</Int32>
-            <Boolean Member="IsReadOnly">True</Boolean>
-          </Contract>
-          <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.MethodGroupItem">
-            <String Member="PropertyName">dispenseSpeed_2</String>
-            <Int32 Member="PropertyIndex">9</Int32>
-            <Boolean Member="IsReadOnly">True</Boolean>
-          </Contract>
-        </List>
-      </Contract>
-    </List>
-  </MethodParameterGroups>
-  <PAL3MethodComposer xmlns="http://ctc.ch/pal3/datacontract/v1/">
-    <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.WorkFlowPersistance">
-      <UInt64 Member="TargetCdsType">1</UInt64>
-      <List Member="WorkStepPersistances" Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.WorkstepPersistance">
-        <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.WorkstepPersistance">
-          <String Member="Name">Use Tool</String>
-          <String Member="StatusMessage">Use Tool</String>
-          <String Member="HashCode">4LRW2F</String>
-          <Dictionary Member="ParameterValues" Type="System.String,System.Object">
-            <Uri Key="tool">pal://localhost/machineObject/type/ToolLiquidD18_57?name=Syringe 10mL#9e7a7c0f-56e5-4dc4-ae78-335e9b43be37</Uri>
-          </Dictionary>
-          <List Member="IsValueOverriden" Type="System.String" />
-          <String Member="IconAsBase64String">iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAAtZJREFUWEftl9FPUlEcx/0fsvdetM1QcSYaMNQI0blIAVGrKWWCBKi7ClIoCENzzKyZTM1p1lzWrK2HVqsnW/nme2++mLNX9Q/4ds/x3Hu53qsv5aqNz/Z19/y+Z5wPeBHJQxaXqgwoKS6VxecLsBbY3v4Bi6UeTU12MWS9t7fHdhxiMdWirtYsxsLn9o0O1sqRCRiN1dCWluF8QQGKNcWouKgDxw2yFtjZ2UFjow1OpwttbdfhcLj49VXs7++zHYfUmWpw2WBCS0srbHxv1pvgdXexVo5MgBAOR6gAOfw4hobuUYFUapxNlMT4x2ludqC+xswm6uQEZAKzs/OI3h9GIBBEZ+ctLC4u83nGWgm/P4iurm5EIlE2kfDwN+W4tREBQzXcGi1aS8rpmmSAv2eOIhNYW3vLriTUBE56BZKVRnw9V6gaInGUvy9A3sNCVldfsbHE3NxTsRfCcSEqEI8nFF1CZ1A9nCTF/mYIIeT19PixtLRMMzX1mA6zGR6Oi72Q9vabVKCjw63oIvzvXO1wkrBOL+4j5xLypqdnsLv7k2Zl5SUdZpPJzIq9kP5+jgpEozFFN1qhVz2cJGm2ivvIuQSZgCM1CdPmliz2wajYCzk1AUt0DGfWv8ti9XNiLyQnkBPICfxRAY/Hh4mJNI2RiyoE9G6P2Aux251UwOVqU3ShC1rVw0m48ipxHzmXCtCfDOvIA4VAQ2+ItRKn9mn43wj09fXBZmtCLBZnE4nfEjCHYjj75gvyP2wi/90Gvbbe5VgrMZnw4vXDWkynw2wi0VmpR7pMR/OiUIOZIq249l+xsl0SMoH3nz4jw/8bVjQQR013kF6vf9tgrcTzzCC2PjZgZSHJJhLZn/dj/DNO3/GK64ODA7ZLQiYgoAkn4RxJsZWSkwSyIS/5lPfwbj+OnEBO4B8VuNYKe1D6VnyUR+O9mE81YOHJKJuoQ74lJbp72EoN4BcB6KTrOLJPbgAAAABJRU5ErkJggg==</String>
-          <Int32 Member="StepNumber">0</Int32>
-        </Contract>
-        <Contract Type="Ctc.Palplus.Integration.Driver.Controls.MethodEditorConfigurations.WorkstepPersistance">
-          <String Member="Name">Clean Syringe</String>
-          <String Member="StatusMessage">Clean Syringe</String>
-          <String Member="HashCode">49ZUWS</String>
-          <Dictionary Member="ParameterValues" Type="System.String,System.Object">
-            <Uri Key="washSource">pal://localhost/machineObject/type/LargeVolumeWashStation?name=Large Wash 1#a4488ed4-1953-4cba-9b96-d2b4ebe9cd0d</Uri>
-            <Int32 Key="washIndex">1</Int32>
-            <Int32 Key="washCycles">3</Int32>
-            <Quantity Key="washVolume" Unit="%">70</Quantity>
-            <Quantity Key="fillSpeed" Unit="µL/s">200</Quantity>
-            <Quantity Key="washSourcePenetrationDepth" Unit="mm">40</Quantity>
-            <Quantity Key="dispenseSpeed" Unit="µL/s">400</Quantity>
-          </Dictionary>
-          <List Member="IsValueOverriden" Type="System.String" />
-          <String Member="IconAsBase64String">iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAABGdBTUEAALGPC/xhBQAAAAlwSFlzAAAOwgAADsIBFShKgAAAA8lJREFUWEfdlktPU1EQx/0iGolv3erSZ/wAGhcmLowLTUyMG9SFIaYK5VFK0VgMDxVoewUKthQohbSoCW0BE8VqlRhACGKMCyBEYMHz75npubSFW26t1oW/ZHLn9Dzmf+fMObfbkCXOnjmHfXv3J1lOzi7ZGyfrAnJ27sSO7duxe9eefyvg5885TE5+w4EDh1jA0aPHub2RrAlQOSgFnDp1Wv6SzP8roK+vH+Xl5Th8+AhOnDiJ48dOwmC4J3vjZE2Aw6FgZmZGtmKUlZVLL85fEzA9PY2urm4MDLzG6urqvxEwPz+PpiYniopKUFlZjUgkgt7eXty+nQer9VF2BCwuLqKz04eSEhMslvsYHx+XPXGWl5dx7dr1vyeAUkpvZjaXwWQy48OHqOxJTW2tDYODg7IV47cFvHsX4UmFhcUIBkNYW1uTPfrMzc2huNgkWzHSEjA1NSX2r4KDdnT4OJ2pUAV9//4DoXCY/UQ2HjtdAW/evEVBQREXlx4mswVGYzGGhj6jrs6GJ7X1vFWJuN2tnEUVXQH5+UbpbY3P14WPn4YQ7h/A3bv57NvsDkQ/fkIoFJKjgKWlJT4hKroCLJbNA4iRkS9JFe10NnPQyqoatHra2CchLS1u1NbVJ9WK0Vi03tYVQIO1cLncHGh4eFjYCLr9PRw0N/cmP6lNR5J8h6NBzorR0/OCTxChK4COmVal2+0KL97a6oFL7Cv7QlBlVTX7tHBABCLfI35PhOqCCprQFUD7FwwGZSsGXa+0MFm9zb6ecoNIOdUA+bk3bvHT5fbgwYOHqK5+nFSQaQugSYlFQ1D6aXEKVlBQyL5fpJwWI19RGmEXaSeftoG2g8aGw/1yBayvqSuAoEGJZ19Nv0MEamhoZD8vzwB/IJZy9e0pKGWFfNoGtWi93k60tbWzn5aASOS9uIC87KvHjcwt9l9NuWp0/s3iPiC/SqSdaoTHijp5+fIVX0QkWiUtAYS6Zy0y/enY5StX+ekTNXPnjkGcqEL+RCeStoCKikdYWFgQ6ps2BUpl3d0BfjY3P+c1FOUZ1wytFY1GOfj58xe4LxFNAWNjY7DZFChyz3/H6NwnYrVaUVPzFF+/TspfktEUQJSWlvL9rhUklTU0OuXsOBkLWFlZQam4mLQCaVnPi1fiyh6Vs+NkLIBwiv3UCrbROrw+jI5uDk78kQD6wmkFVK1P/AH1iDM+OzsrZ2wmYwGBQOyDs5UpSvKHR4uMBbQ8d2kGVa293bvlm6tkJGBiYkL86y0TR9GR0vz+gBy9NfR9uHjxUgoBwC9JaI7rDiB4UAAAAABJRU5ErkJggg==</String>
-          <Int32 Member="StepNumber">0</Int32>
-        </Contract>
-      </List>
-      <Boolean Member="ParametersEnabledInCds">False</Boolean>
-    </Contract>
-  </PAL3MethodComposer>
-</Cycle>"""""  # Example structure
+    xml_data = """
+    XML Goes Here
+    """
     return xml_data
 
 
@@ -556,28 +387,22 @@ def generate_response_with_openai(query, matches):
     # get the number of tokens in the prompt using tiktoken
     encoding = tiktoken.encoding_for_model("gpt-3.5-turbo-0613")
     st.write(f"Number of tokens in the prompt: {len(encoding.encode(prompting))}")
-    prompt = ChatPromptTemplate.from_messages(
-        [
-            SystemMessage(
-                content=prompting
-            ),  # The persistent system prompt
-            MessagesPlaceholder(
-                variable_name="chat_history"
-            ),  # Where the memory will be stored.
-            HumanMessagePromptTemplate.from_template(
-                "{human_input}"
-            ),  # Where the human input will injected
-        ])
 
-    chat_llm_chain = LLMChain(
-        llm=llm,
-        prompt=prompt,
-        verbose=False,
-        memory=memory)
+    st.session_state.messages.append({"role": "user", "content": query})
 
-    response2user = chat_llm_chain.predict(human_input=query)
+    messages = [{"role": "system", "content": prompting}] + st.session_state.messages
 
-    return response2user
+    response = client.chat.completions.create(
+        model='gpt-4o-2024-08-06',
+        messages=messages,
+        stream=False,
+        temperature=TEMPERATURE,
+        max_tokens=3000
+    )
+
+    st.session_state.messages.append({"role": "assistant", "content": response.choices[0].message.content})
+
+    return response.choices[0].message.content
 
 # Set up the page
 st.set_page_config(
@@ -622,6 +447,7 @@ def check_password():
 if check_password():
     st.write(f'Welcome *{st.secrets["username"]}*')
 
+
     st.write(
         """This app generates a PAL script using LangChain, OpenAI and Pinecone. 
         
@@ -659,12 +485,24 @@ if check_password():
     # Set up the chat script generation
     st.header("Chat Script Generation")
 
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    if "system_prompt" not in st.session_state:
+        st.session_state["system_prompt"] = ''
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
     # streamlit chat_message
     prompt = st.chat_input("Enter your chat input here:")
     if prompt:
         with st.spinner("Generating chat script..."):
+            with st.chat_message("user"):
+                st.write(prompt)
             chat_script = chat_with_user(prompt)
-            st.code(chat_script, language='xml')
+            st.code(chat_script, language='pall')
             st.info("The chat script has been generated successfully. Please feel free to ask additional questions in the input above\
                     The previous chat script will be stored in the memory and used to generate the next chat script.")
 
