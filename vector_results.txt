@@ -1,292 +1,104 @@
-[{'id': 'page_1381',
- 'metadata': {'name': 'page_1381',
-              'script': "page_content='able check is required, it is "
-                        'recommended to dispose the 1000 µL-tips instead of '
-                        're-\\nturning them to the tip rack.\\n6.12 Generic '
-                        'Tool\\nThe generic Tool is thought for customers who '
-                        'would like to develop their own custom-\\nmade tool '
-                        'with a special functionality, like e.g. a gripper for '
-                        'transporting vials. The use of\\ngeneric tools '
-                        'requires FW 2.2.X or higher.\\nAs base for the '
-                        'conversion serves a special branded tool blank for a '
-                        "needle length of 85' metadata={'source': "
+[{'id': 'code_snip_4',
+ 'metadata': {'description': 'This procedure is designed to produce a beep '
+                             'sound from a robot, with the ability to '
+                             'customize the duration and frequency of the '
+                             'beep. It is a simple automation script used to '
+                             'signal events or statuses through audible '
+                             'alerts.\n'
+                             '\n'
+                             '1. Define the procedure named "BeepRobot" which '
+                             'takes two parameters: `duration` (of type Time) '
+                             'and `frequency` (of type Frequency).\n'
+                             '2. Inside the procedure, invoke the `Beep` '
+                             'function, passing the `duration` and `frequency` '
+                             'parameters to it.\n'
+                             '3. The `Beep` function generates a sound based '
+                             'on the specified duration and frequency, '
+                             'effectively producing a beep sound as defined by '
+                             'the user.\n'
+                             '\n'
+                             'The tools utilized in this script include a '
+                             'procedure definition for encapsulation of '
+                             'functionality and a beep function that handles '
+                             'the sound generation based on the parameters '
+                             'provided.',
+              'name': 'code_snip_4',
+              'script': 'procedure BeepRobot(    duration : Time,    frequency '
+                        ': Frequency  )beginBeep( duration = duration, '
+                        'frequency = frequency )end  ',
+              'tags': ['BeepRobot,',
+                       'duration,',
+                       'Time,',
+                       'frequency,',
+                       'Beep,',
+                       'begin,',
+                       'end']},
+ 'score': 0.491265893,
+ 'values': []}, {'id': 'page_1714',
+ 'metadata': {'name': 'page_1714',
+              'script': 'page_content=\'The pull-up menu "Beep" is directly '
+                        'available from all the other list parameters.\\nItem '
+                        'Description\\nReset to Default Resets the selected '
+                        'PALmodule parameter to default value.\\nBeep '
+                        'Activates a "Beep" sound on the PALrobot. If '
+                        'activated, the\\noperator can select the "Duration", '
+                        '"Frequency" and the Vol-\\nume of the tonal '
+                        'sound.\\nDuration The time for the tonal sound is '
+                        'selectable from 100 ms to 60\\nseconds.\\nFrequency '
+                        'The frequency of the tonal sound is selectable from '
+                        "100 to\\n10000 Hz.' metadata={'source': "
                         "'C:\\\\Users\\\\klds372\\\\OneDrive - "
                         'AZCollaboration\\\\Python\\\\LLM_PallScript\\\\chat_pall_scr\\\\files_for_training\\\\manuals\\\\CTC '
-                        "User Manual Edition 11.1.pdf', 'page': 351}"},
- 'score': 0.491523534,
- 'values': []}, {'id': 'page_83',
- 'metadata': {'name': 'page_83',
-              'script': "page_content='6.10 Dilutor Tool "
-                        '.................................................................................................................... '
-                        '331\\n6.11 Pipette Tool '
-                        '................................................................................................................... '
-                        '331\\n6.11.1 Parameters of the Pipette Tool '
-                        '......................................................................... '
-                        "333' metadata={'source': "
+                        "User Manual Edition 11.1.pdf', 'page': 459}"},
+ 'score': 0.369647443,
+ 'values': []}, {'id': 'page_2728',
+ 'metadata': {'name': 'page_2728',
+              'script': "page_content='DecapObject  Transports an object to a "
+                        'decapper and removes the cap(s) from it. \\n '
+                        '\\nMiscellaneous Activities \\nBeep This activity '
+                        'emits a beep for the time specified. '
+                        '\\nWaitForSyncSignal  This activity waits for the '
+                        'specified input signal. \\nSetSignal  This activity '
+                        'sets the specified output signal. \\nStartTimer  This '
+                        'activity starts a timer. This timer will be consumed '
+                        "at a later stage in the script \\nexecution.' "
+                        "metadata={'source': "
+                        "'C:\\\\Users\\\\klds372\\\\OneDrive - "
+                        'AZCollaboration\\\\Python\\\\LLM_PallScript\\\\chat_pall_scr\\\\files_for_training\\\\manuals\\\\PAL3 '
+                        "Activities Glossary Rev 1.0.pdf', 'page': 2}"},
+ 'score': 0.304356217,
+ 'values': []}, {'id': 'page_1715',
+ 'metadata': {'name': 'page_1715',
+              'script': "page_content='CTC Analytics AG The menu structure  | "
+                        '8\\nPAL System 461 / 743Item Description\\nRun '
+                        'Activates the tonal sound with the selected '
+                        'parameters for\\ntesting.\\nBeep Utility This task '
+                        'allows the frequency and the length of the '
+                        'beep\\ntone to be set.\\nItems displayed in green are '
+                        'only visible in the access level "Extended '
+                        'User".\\nInjectors\\nThe section "Injectors" is used '
+                        'for the GC Injector, which is a passive\\nPALmodule, '
+                        'and for the active PALmodule "OC Actuator". The "LC '
+                        "Injec-' metadata={'source': "
                         "'C:\\\\Users\\\\klds372\\\\OneDrive - "
                         'AZCollaboration\\\\Python\\\\LLM_PallScript\\\\chat_pall_scr\\\\files_for_training\\\\manuals\\\\CTC '
-                        "User Manual Edition 11.1.pdf', 'page': 7}"},
- 'score': 0.461158901,
- 'values': []}, {'id': 'Task13 Return value',
- 'metadata': {'description': 'This procedure is designed to select the '
-                             'appropriate syringe tool for transferring a '
-                             'specified volume of liquid, either using a 10 µL '
-                             'syringe or a 100 µL syringe, based on the input '
-                             'volume requirement. The script ensures that the '
-                             'correct tool is selected and changed before '
-                             'proceeding with further operations.\n'
-                             '\n'
-                             '1. **Define the Main Procedure**: The `Main` '
-                             'procedure takes three parameters: '
-                             '`tool10uLSyringe`, `tool100uLSyringe`, and '
-                             '`transferVolume`, which defaults to 10 µL. These '
-                             'parameters specify the available tools and the '
-                             'volume to be transferred.\n'
-                             '\n'
-                             '2. **Declare Variable**: A variable `myTool` of '
-                             'type `ITool` is declared to hold the selected '
-                             'syringe tool.\n'
-                             '\n'
-                             '3. **Tool Selection Process**: The '
-                             '`ToolSelectionProcess` procedure is defined to '
-                             'determine which syringe tool to use based on the '
-                             '`transferVolume`.\n'
-                             '   - **Check Volume**: If `transferVolume` is '
-                             'less than or equal to 10 µL, it assigns '
-                             '`tool10uLSyringe` to `retTool`. Otherwise, it '
-                             'assigns `tool100uLSyringe`.\n'
-                             '   - **Special Case Handling**: If the '
-                             '`transferVolume` is exactly 10 µL and '
-                             '`tool10uLSyringe` is not available (i.e., '
-                             '`none`), it assigns `tool100uLSyringe` to '
-                             '`retTool` instead.\n'
-                             '   - **Return Selected Tool**: The procedure '
-                             'returns the selected tool `retTool`.\n'
-                             '\n'
-                             '4. **Execute Tool Selection**: The `Main` '
-                             'procedure calls the `ToolSelectionProcess`, '
-                             'storing the returned tool in the `myTool` '
-                             'variable.\n'
-                             '\n'
-                             '5. **Change Tool**: Finally, the `ChangeTool` '
-                             'function is called with `myTool` as the argument '
-                             'to switch to the selected syringe tool, ensuring '
-                             'that the correct tool is in place for the '
-                             'upcoming liquid transfer operations. \n'
-                             '\n'
-                             'Overall, the script effectively manages tool '
-                             'selection based on the volume of liquid to be '
-                             'transferred, ensuring that the appropriate '
-                             'syringe is used for optimal performance in lab '
-                             'automation tasks.',
-              'name': 'Task13 Return value',
-              'script': '\ufeff\n'
-                        'procedure\xa0Main(\n'
-                        'tool10uLSyringe:ITool{none, all\xa0ITool},\n'
-                        'tool100uLSyringe:ITool{none, all\xa0ITool},\n'
-                        'transferVolume:Volume[1uL..100uL]=10uL\n'
-                        ')\n'
-                        '\n'
-                        '\n'
-                        'var\n'
-                        'myTool:ITool\n'
-                        '    \n'
-                        '    \n'
-                        '\n'
-                        'procedure\xa0ToolSelectionProcess()\n'
-                        ':ITool\n'
-                        '\n'
-                        'var\n'
-                        'retTool:ITool\n'
-                        '\n'
-                        'begin\n'
-                        'if\xa0transferVolume <=10µL\xa0then\n'
-                        '    retTool = tool10uLSyringe\n'
-                        '    else\xa0\xa0\xa0\xa0\xa0\xa0retTool = '
-                        'tool100uLSyringe\n'
-                        '    end\xa0\n'
-                        '    if\xa0transferVolume==10uL\xa0and\xa0'
-                        'tool10uLSyringe==none\xa0then\n'
-                        '    retTool = tool100uLSyringe\n'
-                        '   end\n'
-                        '   return\xa0retTool\n'
-                        'end\n'
-                        '    \n'
-                        'begin\n'
-                        ' myTool=ToolSelectionProcess()\xa0//assignment of the '
-                        'return value to myTool\n'
-                        ' ChangeTool(tool=myTool)\n'
-                        'end',
-              'tags': ['',
-                       'Main',
-                       '',
-                       'tool',
-                       '',
-                       'syringe',
-                       '',
-                       'transfer',
-                       '',
-                       'volume',
-                       '',
-                       'selection',
-                       '',
-                       'process',
-                       '',
-                       'return',
-                       '',
-                       'change',
-                       '',
-                       '']},
- 'score': 0.45719552,
- 'values': []}, {'id': 'page_2606',
- 'metadata': {'name': 'page_2606',
-              'script': "page_content='cluded.\\nPAL3-TH-D885-TMO Universal "
-                        'Liquid Syringe Tool for syringes of 250 µL, 500 '
-                        'µL\\nor 1000 µL with a needle length of 85 mm. '
-                        'Syringes not in-\\ncluded.\\nPAL3-TH-D1857-TMO '
-                        'Universal Liquid Syringe Tool for a syringe of 10000 '
-                        'µL with a\\nneedle length of 57 mm. Syringes not '
-                        'included.\\nPAL3-TH-HS1000-TMO Headspace Syringe Tool '
-                        'for a 1000 µL syringe with a needle\\nlength of 65 '
-                        'mm. Syringe not included.\\nPAL3-TH-HS2500-TMO '
-                        'Headspace Syringe Tool for a 2500 µL syringe with a '
-                        "needle' metadata={'source': "
+                        "User Manual Edition 11.1.pdf', 'page': 460}"},
+ 'score': 0.288972557,
+ 'values': []}, {'id': 'page_1713',
+ 'metadata': {'name': 'page_1713',
+              'script': "page_content='Items displayed in green are only "
+                        'visible in the access level "Extended User".\\nThe '
+                        'detailed specifications for the various input and '
+                        'output signals will\\nbe provided in the PAL3 Service '
+                        'Manual.\\nI/O Interface Options Pull-up '
+                        'Menu\\nSelecting the pull-up menu "Options" from the '
+                        'list item "Beep" opens up all the '
+                        'following\\ntasks:\\nIllustration\\xa0665: "Options" '
+                        'Pull-up Menu for\\n"Beep '
+                        'Volume".Illustration\\xa0666: List items for "Beep '
+                        'Utility".\' metadata={\'source\': '
                         "'C:\\\\Users\\\\klds372\\\\OneDrive - "
                         'AZCollaboration\\\\Python\\\\LLM_PallScript\\\\chat_pall_scr\\\\files_for_training\\\\manuals\\\\CTC '
-                        "User Manual Edition 11.1.pdf', 'page': 732}"},
- 'score': 0.448532909,
- 'values': []}, {'id': 'Task6MultipleTransfer',
- 'metadata': {'description': 'This procedure is designed to automate the '
-                             'process of transferring a specified volume of '
-                             'liquid from a source vial to a target vial '
-                             'multiple times, utilizing a syringe tool for '
-                             'precise liquid handling. The script allows for '
-                             'bottom sensing of the source vial and '
-                             'customizable parameters for the transfer '
-                             'process.\n'
-                             '\n'
-                             '1. **Select the Syringe Tool**: The procedure '
-                             'begins by changing the active tool to the '
-                             'specified syringe, which will be used for '
-                             'aspirating and dispensing liquids.\n'
-                             '\n'
-                             '2. **Loop Through Transfers**: A loop is '
-                             'initiated that will run for a defined number of '
-                             'transfers (from 1 to the specified number of '
-                             'transfers).\n'
-                             '\n'
-                             '3. **Move to Source Rack**: The system moves to '
-                             'the specified position of the source liquid '
-                             'rack, using the provided index to locate the '
-                             'correct vial.\n'
-                             '\n'
-                             '4. **Bottom Sensing (Optional)**: \n'
-                             '   - If bottom sensing is enabled, the system '
-                             'checks if a warning beep is required when '
-                             'sensing the bottom of the vial. If so, it emits '
-                             'a beep for 1 second.\n'
-                             '   - The system then penetrates the source vial '
-                             'using bottom sensing, ensuring it is 1mm from '
-                             'the bottom of the vial.\n'
-                             '   - If bottom sensing is not enabled, it '
-                             'penetrates the vial to the specified penetration '
-                             'depth (default is 30mm).\n'
-                             '\n'
-                             '5. **Filling Strokes**: The syringe performs a '
-                             'set number of filling strokes (defined by the '
-                             'filling strokes count), each with a specified '
-                             'volume (20% of the syringe volume).\n'
-                             '\n'
-                             '6. **Aspirate Liquid**: The syringe aspirates '
-                             'the specified transfer volume of liquid from the '
-                             'source vial at a defined flow rate.\n'
-                             '\n'
-                             '7. **Leave Source Object**: After aspirating the '
-                             'liquid, the syringe leaves the source vial.\n'
-                             '\n'
-                             '8. **Move to Target Rack**: The system then '
-                             'moves to the specified position of the target '
-                             'transfer rack, again using the provided index to '
-                             'locate the correct target vial.\n'
-                             '\n'
-                             '9. **Dispense Liquid**: The syringe penetrates '
-                             'the target vial to the specified dispense depth '
-                             '(default is 30mm) and releases the aspirated '
-                             'liquid.\n'
-                             '\n'
-                             '10. **Leave Target Object**: Finally, the '
-                             'syringe leaves the target vial, completing the '
-                             'transfer process.\n'
-                             '\n'
-                             'This procedure effectively automates the '
-                             'repetitive task of liquid transfer, ensuring '
-                             'accuracy and efficiency in laboratory workflows.',
-              'name': 'Task6MultipleTransfer',
-              'script': '\ufeffprocedure Task6MultipleTransfer(\n'
-                        'liquidSourceRack:IRack,\n'
-                        'liquidSourceIndex:Integer[1..100]=1,\n'
-                        'syringe:ITool,\n'
-                        'transferVolume:Volume[1uL..10000uL]=1uL,\n'
-                        'aspirateFlowRate:Flow[10uL/s..10000uL/s]=10uL/s,\n'
-                        'penetrationDepth:Length[1mm..32mm]=30mm,\n'
-                        'bottomSenseSourceVial:Boolean=false,\n'
-                        'warningBeepWhenBottomSensing:Boolean,\n'
-                        'fillingStrokesCount:Integer[0..15]=4,\n'
-                        'fillingStrokesVolume:Volume[1uL..1000uL]=3uL,//20% of '
-                        'the syringe volume\n'
-                        'targetTransferRack:IRack,\n'
-                        'targetTransferIndex:Integer[1..100]=1,\n'
-                        'targetVialDispenseDepth:Length[5mm..50mm]=30mm,\n'
-                        'numberOfTransfers:Integer[0..10]=1\n'
-                        ')\n'
-                        '\n'
-                        'const\n'
-                        'HeightFromBottomSampleVial:Length=1mm\n'
-                        '\n'
-                        'var\n'
-                        'n:Integer//loop counter\n'
-                        '    \n'
-                        'begin\n'
-                        'ChangeTool( tool=syringe )\n'
-                        '  for n=1 to numberOfTransfers do  \n'
-                        '        MoveToObject( target=liquidSourceRack '
-                        ',index=liquidSourceIndex)\n'
-                        '            if bottomSenseSourceVial then\n'
-                        '                if warningBeepWhenBottomSensing then\n'
-                        '                Beep(duration=1s)\n'
-                        '                end\n'
-                        '            PenetrateWithBottomSense( '
-                        'target=liquidSourceRack, index=liquidSourceIndex, '
-                        'heightFromBottom=HeightFromBottomSampleVial)\n'
-                        '            else\n'
-                        '            PenetrateObject( target=liquidSourceRack  '
-                        ',index=liquidSourceIndex  '
-                        ',depth=penetrationDepth)   \n'
-                        '            end\n'
-                        '        FillingStrokes( volume=fillingStrokesVolume, '
-                        'count=fillingStrokesCount )\n'
-                        '        AspirateSyringe( volume=transferVolume '
-                        ',flowRate=aspirateFlowRate  )\n'
-                        '        LeaveObject( )\n'
-                        '                \n'
-                        '        //dispensing in target vial\n'
-                        '        MoveToObject( target=targetTransferRack  '
-                        ',index=targetTransferIndex)\n'
-                        '        PenetrateObject( target=targetTransferRack  '
-                        ',index=targetTransferIndex  '
-                        ',depth=targetVialDispenseDepth)\n'
-                        '        LeaveObject( )\n'
-                        '   end\n'
-                        'end',
-              'tags': ['procedure',
-                       'transfer',
-                       'syringe',
-                       'volume',
-                       'flow',
-                       'depth',
-                       'vial',
-                       'tool',
-                       'object',
-                       'change']},
- 'score': 0.441721231,
+                        "User Manual Edition 11.1.pdf', 'page': 459}"},
+ 'score': 0.280519783,
  'values': []}]

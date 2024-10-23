@@ -464,12 +464,31 @@ if check_password():
         """
     )
 
+
+    with st.sidebar:
+        col_1, col_2, col_3, col_4, col_5 = st.columns([0.1, 0.3, 0.1, 0.3, 0.1])
+
+        with col_2:
+            if st.button('Log Out'):
+                st.session_state["password_correct"] = False
+                st.session_state.clear()
+                st.rerun()
+
+        with col_4:
+            if st.button('Clear Chat'):
+                st.session_state.messages = []
+                st.session_state["system_prompt"] = ''
+                st.rerun()
+
+    # add some whitespace
+    st.sidebar.write("---")
+
     # Set up the sidebar
     st.sidebar.title("Settings")
-    if st.sidebar.button('Log Out'):
-        st.session_state["password_correct"] = False
-        st.session_state.clear()
-        st.rerun()
+
+    # add some whitespace
+    st.sidebar.write("---")
+
     st.sidebar.write("Select the settings for the chat script generation.")
     # set up a selection box for the top_k results
     top_k_select = st.sidebar.number_input(
@@ -506,20 +525,20 @@ if check_password():
             st.info("The chat script has been generated successfully. Please feel free to ask additional questions in the input above\
                     The previous chat script will be stored in the memory and used to generate the next chat script.")
 
-            # Download Button
-            st.download_button(
-                label="Download as XML",
-                data=generate_xml(chat_script),  # Function to generate XML data
-                file_name="chat_script.xml",
-                mime="text/xml"
-            )
+
+            #st.download_button(
+            #    label="Download as XML",
+            #    data=generate_xml(chat_script),  # Function to generate XML data
+            #    file_name="chat_script.xml",
+            #    mime="text/xml"
+            #)
 
     # Set up the footer
     st.sidebar.title("About")
     st.sidebar.info(
         """
         This app generates a PAL script for Thermo autosampler rail based on natural language input\
-        using LangChain, OpenAI, Pinecone, and HuggingFace.
+        using OpenAI and Pinecone.
         """
     )
 
